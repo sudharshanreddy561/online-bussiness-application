@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SR Icecreams — Online Store</title>
+  <style>
+    /* Simple responsive styling */
+    :root{--accent:#FF6B6B;--muted:#666}
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, Arial;margin:0;background:#fff;color:#111}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;background:linear-gradient(90deg,#fff 0%, #fff 100%);border-bottom:1px solid #eee}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .title{font-size:18px;font-weight:700}
+    main{display:grid;grid-template-columns:1fr 360px;gap:20px;padding:20px;max-width:1100px;margin:20px auto}
+    @media (max-width:900px){main{grid-template-columns:1fr}}
+
+    /* Product grid */
+    .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+    .card{border:1px solid #eee;border-radius:12px;padding:12px;background:#fafafa}
+    .card img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+    .card h4{margin:8px 0 6px;font-size:16px}
+    .card p{margin:0 0 8px;color:var(--muted);font-size:14px}
+    .card .row{display:flex;justify-content:space-between;align-items:center}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.secondary{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+
+    /* Cart */
+    .cart{border:1px solid #eee;border-radius:12px;padding:14px;height:fit-content}
+    .cart h3{margin-top:0}
+    .line{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+    .cart-empty{color:var(--muted);text-align:center;padding:12px}
+    .qty{display:flex;gap:8px;align-items:center}
+    .checkout{margin-top:12px}
+    input[type=number],input[type=text],input[type=email]{width:100%;padding:8px;border-radius:8px;border:1px solid #ddd}
+    label{font-size:13px;color:var(--muted);margin-bottom:6px;display:block}
+    footer{padding:16px;text-align:center;color:#999;font-size:13px}
+
+    /* small helpers */
+    .badge{background:#fff;padding:6px 8px;border-radius:999px;border:1px solid #eee;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">SR</div>
+      <div>
+        <div class="title">SR Icecreams</div>
+        <div style="font-size:12px;color:var(--muted)">Fresh. Creamy. Delivered.</div>
+      </div>
+    </div>
+    <div class="badge">Pickup & Delivery • Online Payments</div>
+  </header>
+
+  <main>
+    <section>
+      <h2 style="margin-top:0">Our Flavours</h2>
+      <div class="products" id="productGrid"></div>
+    </section>
+
+    <aside>
+      <div class="cart" id="cart">
+        <h3>Cart</h3>
+        <div id="cartItems"></div>
+        <div class="line" style="border-top:1px dashed #eee;padding-top:8px;margin-top:8px">
+          <strong>Total</strong>
+          <strong id="cartTotal">₹0</strong>
+        </div>
+
+        <div class="checkout" id="checkoutArea" style="display:none">
+          <h4 style="margin:10px 0 6px">Delivery details</h4>
+          <label for="name">Full name</label>
+          <input id="name" placeholder="Your name" />
+          <label for="phone">Phone</label>
+          <input id="phone" placeholder="10-digit mobile" />
+          <label for="address">Address</label>
+          <input id="address" placeholder="House, street, city, PIN" />
+          <label for="email">Email (optional)</label>
+          <input id="email" placeholder="you@example.com" />
+
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn" id="payNow">Pay & Place Order</button>
+            <button class="btn secondary" id="cod">Cash on Delivery</button>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-top:8px">We deliver within your city. Shipping charges apply during checkout.</div>
+        </div>
+
+        <div id="emptyNotice" class="cart-empty">Your cart is empty. Add some tasty ice cream!</div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    © SR Icecreams — Made with ❤️
+  </footer>
+
+  <script>
+    // --- SAMPLE PRODUCT DATA (you can replace with real images & prices) ---
+    const products = [
+      {id: 'p1', name: 'Vanilla Classic', price: 80, img: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=800&q=60'},
+      {id: 'p2', name: 'Belgian Chocolate', price: 100, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=60'},
+      {id: 'p3', name: 'Strawberry Swirl', price: 90, img: 'https://images.unsplash.com/photo-1589712233057-3d3b8f0f7b6c?auto=format&fit=crop&w=800&q=60'},
+      {id: 'p4', name: 'Mango Delight', price: 85, img: 'https://images.unsplash.com/photo-1620411450559-7d86b6f7b1d1?auto=format&fit=crop&w=800&q=60'},
+      {id: 'p5', name: 'Pista Crunch', price: 95, img: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=800&q=60'}
+    ];
+
+    // Simple in-memory cart
+    let cart = JSON.parse(localStorage.getItem('sr_cart') || '[]');
+
+    function saveCart(){ localStorage.setItem('sr_cart', JSON.stringify(cart)); }
+
+    function renderProducts(){
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+      products.forEach(p=>{
+        const el = document.createElement('div'); el.className='card';
+        el.innerHTML = `
+          <img src="${p.img}" alt="${p.name}" />
+          <h4>${p.name}</h4>
+          <p>₹${p.price} per cup</p>
+          <div class="row">
+            <button class="btn" onclick="addToCart('${p.id}')">Add to cart</button>
+            <div style="font-size:13px;color:var(--muted)">In stock</div>
+          </div>
+        `;
+        grid.appendChild(el);
+      })
+    }
+
+    function addToCart(id){
+      const prod = products.find(p=>p.id===id);
+      const c = cart.find(x=>x.id===id);
+      if(c) c.qty++;
+      else cart.push({id, name:prod.name, price:prod.price, qty:1});
+      saveCart(); renderCart();
+    }
+
+    function renderCart(){
+      const container = document.getElementById('cartItems');
+      const empty = document.getElementById('emptyNotice');
+      const checkoutArea = document.getElementById('checkoutArea');
+      container.innerHTML='';
+      if(cart.length===0){ empty.style.display='block'; checkoutArea.style.display='none'; document.getElementById('cartTotal').innerText='₹0'; return; }
+      empty.style.display='none'; checkoutArea.style.display='block';
+      let total = 0;
+      cart.forEach(item=>{
+        total += item.price * item.qty;
+        const row = document.createElement('div'); row.className='line';
+        row.innerHTML = `
+          <div style="flex:1">
+            <div style="font-weight:600">${item.name}</div>
+            <div style="font-size:13px;color:var(--muted)">₹${item.price} × ${item.qty}</div>
+          </div>
+          <div class="qty">
+            <button class="btn secondary" onclick="changeQty('${item.id}', -1)">-</button>
+            <div style="min-width:26px;text-align:center">${item.qty}</div>
+            <button class="btn" onclick="changeQty('${item.id}', 1)">+</button>
+          </div>
+        `;
+        container.appendChild(row);
+      })
+      document.getElementById('cartTotal').innerText = '₹' + total;
+    }
+
+    function changeQty(id, delta){
+      const it = cart.find(x=>x.id===id);
+      if(!it) return;
+      it.qty += delta;
+      if(it.qty<=0) cart = cart.filter(x=>x.id!==id);
+      saveCart(); renderCart();
+    }
+
+    // --- Checkout handlers ---
+    document.getElementById('payNow').addEventListener('click', async ()=>{
+      const order = collectOrder();
+      if(!order) return; // validation failed
+
+      // Send order to server to create an order and return payment info
+      // The example below assumes you will create an endpoint at /create-order
+      // which returns { success:true, orderId: '...', amount: 123, razorpayKey: 'YOUR_KEY' }
+      try{
+        const res = await fetch('/create-order',{
+          method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(order)
+        });
+        const data = await res.json();
+        if(!data.success) throw new Error(data.message || 'Order creation failed');
+
+        // Open Razorpay checkout (client-side). Replace with your gateway as needed.
+        const options = {
+          key: data.razorpayKey, // provided by your server
+          amount: data.amount, // in paise (e.g., 10000 = ₹100.00)
+          currency: 'INR',
+          name: 'SR Icecreams',
+          description: 'Order #' + data.orderId,
+          order_id: data.orderId, // razorpay order id
+          handler: function (response){
+            // response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature
+            // Notify server about successful payment
+            fetch('/verify-payment', {method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ ...response, localOrder: order })})
+              .then(r=>r.json()).then(j=>{
+                if(j.ok){ alert('Payment successful! Order placed.'); cart=[]; saveCart(); renderCart(); }
+                else alert('Payment verification failed.');
+              })
+          },
+          prefill: {name: order.name, contact: order.phone, email: order.email}
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }catch(err){ alert('Error: '+err.message); }
+    });
+
+    document.getElementById('cod').addEventListener('click', async ()=>{
+      const order = collectOrder();
+      if(!order) return;
+      try{
+        const res = await fetch('/place-cod-order', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(order)});
+        const j = await res.json();
+        if(j.ok){ alert('Order placed with Cash on Delivery!'); cart=[]; saveCart(); renderCart(); }
+        else alert('Failed to place COD order');
+      }catch(e){ alert('Server error'); }
+    });
+
+    function collectOrder(){
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      const email = document.getElementById('email').value.trim();
+      if(!name || !phone || !address){ alert('Please fill name, phone & address'); return null; }
+      if(cart.length===0){ alert('Cart is empty'); return null; }
+      return {name,phone,address,email,items:cart, total: cart.reduce((s,i)=>s+i.price*i.qty,0)};
+    }
+
+    // Add Razorpay script dynamically (only for demo; remove if using another gateway)
+    (function(){
+      const s = document.createElement('script'); s.src = 'https://checkout.razorpay.com/v1/checkout.js'; document.head.appendChild(s);
+    })();
+
+    // Initial render
+    renderProducts(); renderCart();
+  </script>
+
+  <!--
+    ---------------------------
+    Backend example (Node.js + Express + Razorpay)
+    Save as: server.js
+    ---------------------------
+
+    // npm install express body-parser razorpay cors
+    const express = require('express');
+    const Razorpay = require('razorpay');
+    const bodyParser = require('body-parser');
+    const cors = require('cors');
+
+    const app = express();
+    app.use(bodyParser.json());
+    app.use(cors());
+
+    // IMPORTANT: store these in environment variables
+    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'YOUR_KEY_ID';
+    const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'YOUR_SECRET';
+
+    const razorpay = new Razorpay({ key_id: RAZORPAY_KEY_ID, key_secret: RAZORPAY_KEY_SECRET });
+
+    // Create order
+    app.post('/create-order', async (req,res)=>{
+      try{
+        const {name,phone,address,items,total} = req.body;
+        // Razorpay expects amount in paise
+        const amountInPaise = Math.round(total * 100);
+        const options = { amount: amountInPaise, currency: 'INR', receipt: 'rcpt_' + Date.now() };
+        const order = await razorpay.orders.create(options);
+        return res.json({ success:true, orderId: order.id, amount: order.amount, razorpayKey: RAZORPAY_KEY_ID });
+      }catch(e){ console.error(e); return res.json({ success:false, message: e.message }); }
+    });
+
+    // Verify payment signature (important) - implement properly in production
+    app.post('/verify-payment', (req,res)=>{
+      // TODO: verify signature using crypto and your key_secret
+      // On successful verification, save order to DB, send SMS, etc.
+      return res.json({ ok:true });
+    });
+
+    app.post('/place-cod-order', (req,res)=>{
+      // Save order with payment mode COD and return ok
+      return res.json({ ok:true });
+    });
+
+    app.listen(3000, ()=>console.log('Server running on 3000'));
+
+    ---------------------------
+    Quick notes:
+    - Replace Razorpay keys with your own (sign up at Razorpay and get test keys).
+    - For production, always verify payment signatures on the server using the secret.
+    - For images, replace unsplash links with your product photos.
+    - To host: you can use Vercel/Netlify for frontend and Render/Heroku/DigitalOcean for the backend.
+    ---------------------------
+  -->
+</body>
+</html>
